@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useImperativeHandle } from "react";
 import axios from "axios";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 import { useHistory } from 'react-router-dom';
@@ -12,6 +12,8 @@ const ColorList = ({ colors, updateColors }) => {
   console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [newcolorName, setNewColorName] = useState('')
+  const [newcolorHex, setNewColorHex] = useState('')
   let history = useHistory();
 
   const editColor = color => {
@@ -41,11 +43,21 @@ const ColorList = ({ colors, updateColors }) => {
     axiosWithAuth()
     .delete(`/colors/${color.id}`)
     .then(() => {
-      updateColors(colors.filter(color => colors.id !== color.id));
+      updateColors(colors.filter(deletedColor => colors.id !== deletedColor.id));
       history.push('/')
     })
     .catch(err => console.log(err));
   };
+
+  const handleAddColor = () => {
+    axiosWithAuth()
+      .post('/colors', {color: newcolorName, code: newcolorHex})
+      .then(res => {
+        updateColors({
+          ...colors
+        })
+      })
+  }
 
   return (
     <div className="colors-wrap">
@@ -102,6 +114,25 @@ const ColorList = ({ colors, updateColors }) => {
       )}
       <div className="spacer" />
       {/* stretch - build another form here to add a color */}
+      <form onSubmit={handleAddColor}>
+        <input
+          className='add-form'
+          type='text'
+          name='newColor'
+          value={newcolorName}
+          onChange={e => setNewColorName(e.target.value)}
+          placeholder='Color Name'
+        />
+        <input
+          className='add-form'
+          type='text'
+          name='newHex'
+          value={newcolorHex}
+          onChange={e => setNewColorHex(e.target.value)}
+          placeholder='Hex Code'
+        />
+        <button>Add Color</button>
+      </form>
     </div>
   );
 };
